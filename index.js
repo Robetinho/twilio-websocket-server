@@ -1,11 +1,17 @@
-const WebSocket = require("ws");
 const http = require("http");
+const WebSocket = require("ws");
 
-const server = http.createServer();
+const PORT = process.env.PORT || 10000;
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end("WebSocket server is running.");
+});
+
 const wss = new WebSocket.Server({ server });
 
 wss.on("connection", (ws) => {
-  console.log("🔗 Twilio connected");
+  console.log("🔗 Client connected");
 
   ws.on("message", (msg) => {
     try {
@@ -27,7 +33,6 @@ wss.on("connection", (ws) => {
   });
 });
 
-const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
   console.log(`🟢 WebSocket server running on port ${PORT}`);
 });
