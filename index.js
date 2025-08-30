@@ -24,30 +24,44 @@ wss.on("connection", (ws) => {
     if (data.event === "media") {
       audioChunks.push(data.media.payload); // still base64
     }
+    const callSid = data.start.callSid;
 
-    if (data.event === "stop") {
-      console.log("📴 Streaming stopped");
+if (data.event === "stop" && callSid) {
+  const audioBuffer = Buffer.from(mediaChunks.join(""), "base64");
+  const durationSeconds = (audioBuffer.length / 32000).toFixed(2);
 
-      const base64Audio = audioChunks.join("");
-      const audioBuffer = Buffer.from(base64Audio, "base64");
+  const message = `Thanks. Your audio was approximately ${durationSeconds} seconds long.`;
+  await redirectCall(callSid, message);
+}
 
-      const durationSeconds = audioBuffer.length / 32000; // Approximate: 16-bit PCM mono @ 16kHz = 32000 bytes/sec
-
-      const message = `Thanks. Your audio was approximately ${durationSeconds.toFixed(
-        2
-      )} seconds long.`;
-
-      // Respond via TwiML redirect
-      const twimlUrl = `https://twimlets.com/echo?Twiml=${encodeURIComponent(
-        `<Response><Say>${message}</Say></Response>`
-      )}`;
-
-      // POST to redirect the call (replace with real values or test stub)
-      console.log(`🔁 Redirecting call to Twimlet:\n${twimlUrl}`);
-    }
+    
   });
 });
 
 server.listen(PORT, () => {
   console.log(`🟢 WebSocket server listening on port ${PORT}`);
 });
+
+
+const axios = require("axios");
+
+// Replace with your real credentials
+const ACCOUNT_SID = "AC5ff1b2b373abe50bfce7bc7a79340f0d";
+const AUTH_TOKEN = "e1ae78b1a4be6419059d2329e8f427ff";
+
+async function redirectCall(callSid, message) {
+  const twiml = `<Response><Say>${message}</Say></Response>`;
+
+  await axios.post(
+    `https://api.twilio.com/2010-04-01/Accounts/${ACCOUNT_SID}/Calls/${callSid}.json`,
+    new URLSearchParams({
+      Twiml: twiml,
+    }),
+    {
+      auth: {
+        username: ACCOUNT_SID,
+        password: AUTH_TOKEN,
+      },
+    }
+  );
+}
