@@ -11,46 +11,43 @@ const wss = new WebSocket.Server({ server });
 
 wss.on("connection", (ws) => {
   console.log("🔗 Client connected");
-
   let audioChunks = [];
 
   ws.on("message", async (msg) => {
-  let data;
-  try {
-    data = JSON.parse(msg);
-  } catch (err) {
-    console.error("❌ Could not parse message:", msg);
-    return;
-  }
-
-if (data.event === "start") {
-  console.log("📞 Streaming started");
-  console.log("Start event data:", data);
-
-  var callSid = data.start?.callSid || data.callSid || null;
-  console.log("callSid:", callSid);
-}
-if (data.event === "media") {
-  console.log("🎙️ Media chunk received");
-  audioChunks.push(data.media.payload);
-} 
-
-  if (data.event === "stop") {
-    console.log("🛑 Streaming stopped");
-
-    const audioBuffer = Buffer.from(audioChunks.join(""), "base64");
-    const durationSeconds = (audioBuffer.length / 32000).toFixed(2);
-
-    const message = `Thanks. Your audio was approximately ${durationSeconds} seconds long.`;
-    if (callSid) {
-      await redirectCall(callSid, message);
-    } else {
-      console.error("⚠️ No callSid available at stop event");
+    let data;
+    try {
+      data = JSON.parse(msg);
+    } catch (err) {
+      console.error("❌ Failed to parse message:", msg);
+      return;
     }
-  }
+
+    if (data.event === "start") {
+      console.log("📞 Streaming started");
+      console.log("Start event data:", data);
+      ws.callSid = data.start.callSid;
+    }
+
+    if (data.event === "media") {
+      audioChunks.push(data.media.payload);
+    }
+
+    if (data.event === "stop") {
+      console.log("🛑 Streaming stopped");
+
+      const audioBuffer = Buffer.from(audioChunks.join(""), "base64");
+      const durationSeconds = (audioBuffer.length / 32000).toFixed(2);
+      const message = `Thanks. Your audio was approximately ${durationSeconds} seconds long.`;
+
+      if (ws.callSid) {
+        await redirectCall(ws.callSid, message);
+      } else {
+        console.error("⚠️ No callSid available at stop event.");
+      }
+    }
+  });
 });
 
-});
 
 server.listen(PORT, () => {
   console.log(`🟢 WebSocket server listening on port ${PORT}`);
