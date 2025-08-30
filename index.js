@@ -23,10 +23,13 @@ wss.on("connection", (ws) => {
     return;
   }
 
-  if (data.event === "start") {
-    console.log("📞 Streaming started");
-    var callSid = data.start.callSid;
-  }
+if (data.event === "start") {
+  console.log("📞 Streaming started");
+  console.log("Start event data:", data);
+
+  var callSid = data.start?.callSid || data.callSid || null;
+  console.log("callSid:", callSid);
+}
 
   if (data.event === "media") {
     audioChunks.push(data.media.payload);
