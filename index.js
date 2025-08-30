@@ -27,34 +27,73 @@ wss.on("connection", (ws) => {
   ws.on("message", async (msg) => {
     const data = JSON.parse(msg);
 
+    // Log the raw event
+    console.log("📨 Received event:", data.event);
+
     if (data.event === "start") {
-      console.log("📞 Streaming started");
       callSid = data.start.callSid;
+      console.log("📞 Streaming started");
+      console.log("📍 Call SID:", callSid);
 
-      dgStream = Deepgram.listen.live({ model: "nova-3" });
+      try {
+        dgStream = Deepgram.listen.live({ model: "nova-3", interim_results: false });
 
-      dgStream.on(LiveTranscriptionEvents.Transcript, async (transcriptData) => {
-        const transcript = transcriptData.channel.alternatives[0]?.transcript;
-        if (transcript && transcriptData.is_final) {
-          console.log("🗣️ Final transcript:", transcript);
+        dgStream.on(LiveTranscriptionEvents.Open, () => {
+          console.log("✅ Deepgram connection opened");
+        });
 
-          const twiml = `<Response><Say>You said: ${transcript}</Say></Response>`;
-          await redirectCall(callSid, twiml);
-        }
-      });
+        dgStream.on(LiveTranscriptionEvents.Close, () => {
+          console.log("❎ Deepgram connection closed");
+        });
+
+        dgStream.on(LiveTranscriptionEvents.Transcript, async (transcriptData) => {
+          const transcript = transcriptData.channel.alternatives[0]?.transcript;
+          console.log("📝 Transcript received:", transcriptData);
+
+          if (transcript && transcriptData.is_final) {
+            console.log("🗣️ Final transcript:", transcript);
+
+            const twiml = `<Response><Say>You said: ${transcript}</Say></Response>`;
+            await redirectCall(callSid, twiml);
+          }
+        });
+
+        dgStream.on(LiveTranscriptionEvents.Error, (err) => {
+          console.error("💥 Deepgram error:", err);
+        });
+      } catch (err) {
+        console.error("❌ Error creating Deepgram stream:", err);
+      }
     }
 
-    if (data.event === "media" && dgStream) {
+    if (data.event === "media") {
+      if (!dgStream) {
+        console.warn("⚠️ Media received but no Deepgram stream initialized");
+        return;
+      }
+
       const audio = Buffer.from(data.media.payload, "base64");
       dgStream.send(audio);
     }
 
     if (data.event === "stop") {
       console.log("🛑 Streaming stopped");
-      dgStream?.finish();
+      if (dgStream) {
+        dgStream.finish();
+      }
     }
   });
+
+  ws.on("close", () => {
+    console.log("🔌 Client disconnected");
+    dgStream?.finish();
+  });
+
+  ws.on("error", (err) => {
+    console.error("🚨 WebSocket error:", err);
+  });
 });
+
 
 async function redirectCall(callSid, twiml) {
   try {
