@@ -63,16 +63,20 @@ const AUTH_TOKEN = "e1ae78b1a4be6419059d2329e8f427ff";
 async function redirectCall(callSid, message) {
   const twiml = `<Response><Say>${message}</Say></Response>`;
 
-  await axios.post(
-    `https://api.twilio.com/2010-04-01/Accounts/${ACCOUNT_SID}/Calls/${callSid}.json`,
-    new URLSearchParams({
-      Twiml: twiml,
-    }),
-    {
-      auth: {
-        username: ACCOUNT_SID,
-        password: AUTH_TOKEN,
-      },
-    }
-  );
+await axios.post(
+  `https://api.twilio.com/2010-04-01/Accounts/${ACCOUNT_SID}/Calls/${callSid}.json`,
+  new URLSearchParams({
+    Twiml: twiml,
+  }),
+  {
+    auth: {
+      username: ACCOUNT_SID,
+      password: AUTH_TOKEN,
+    },
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  }
+);
+
 }
