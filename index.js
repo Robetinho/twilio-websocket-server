@@ -2,7 +2,7 @@
 const TWILIO_ACCOUNT_SID = "AC5ff1b2b373abe50bfce7bc7a79340f0d";
 const TWILIO_AUTH_TOKEN = "e1ae78b1a4be6419059d2329e8f427ff";
 const DEEPGRAM_API_KEY = "70bf5ae2ea1d44a5f7d46609c13bfe1011c5632c";
-const OPENAI_API_KEY = "70bf5ae2ea1d44a5f7d46609c13bfe1011c5632c";
+const OPENAI_API_KEY = "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";
 
 
 require("dotenv").config();
