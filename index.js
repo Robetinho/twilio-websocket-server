@@ -36,7 +36,15 @@ wss.on("connection", (ws) => {
       console.log("📍 Call SID:", callSid);
 
       try {
-        dgStream = Deepgram.listen.live({ model: "nova-3", interim_results: false });
+        dgStream = Deepgram.listen.live({ 
+          
+  model: "nova-3",
+  interim_results: false,
+  encoding: "mulaw",
+  sample_rate: 8000,
+  channels: 1
+
+         });
 
         dgStream.on(LiveTranscriptionEvents.Open, () => {
           console.log("✅ Deepgram connection opened");
@@ -45,6 +53,12 @@ wss.on("connection", (ws) => {
         dgStream.on(LiveTranscriptionEvents.Close, () => {
           console.log("❎ Deepgram connection closed");
         });
+
+        dgStream.on(LiveTranscriptionEvents.Transcript, (data) => {
+  console.log("📥 Transcript payload:", JSON.stringify(data, null, 2));
+});
+
+
 
         dgStream.on(LiveTranscriptionEvents.Transcript, async (transcriptData) => {
           const transcript = transcriptData.channel.alternatives[0]?.transcript;
