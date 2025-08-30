@@ -45,15 +45,13 @@ server.listen(PORT, () => {
 
 const axios = require("axios");
 
-// Replace with your real credentials
-const ACCOUNT_SID = "AC5ff1b2b373abe50bfce7bc7a79340f0d";
-const AUTH_TOKEN = "e1ae78b1a4be6419059d2329e8f427ff";
+// Replace with your real credentials 
 
 async function redirectCall(callSid, message) {
   const twiml = `<Response><Say>${message}</Say></Response>`;
 
   await axios.post(
-    `https://api.twilio.com/2010-04-01/Accounts/${ACCOUNT_SID}/Calls/${callSid}.json`,
+    `https://api.twilio.com/2010-04-01/Accounts/.json`,
     new URLSearchParams({
       Twiml: twiml,
     }),
