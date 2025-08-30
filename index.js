@@ -14,7 +14,7 @@ wss.on("connection", (ws) => {
 
   let audioChunks = [];
 
- ws.on("message", async (msg) => {
+  ws.on("message", async (msg) => {
   let data;
   try {
     data = JSON.parse(msg);
@@ -46,6 +46,7 @@ wss.on("connection", (ws) => {
     }
   }
 });
+
 });
 
 server.listen(PORT, () => {
