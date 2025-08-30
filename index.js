@@ -30,10 +30,10 @@ if (data.event === "start") {
   var callSid = data.start?.callSid || data.callSid || null;
   console.log("callSid:", callSid);
 }
-
-  if (data.event === "media") {
-    audioChunks.push(data.media.payload);
-  }
+if (data.event === "media") {
+  console.log("🎙️ Media chunk received");
+  audioChunks.push(data.media.payload);
+} 
 
   if (data.event === "stop") {
     console.log("🛑 Streaming stopped");
